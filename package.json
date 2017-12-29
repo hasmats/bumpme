@@ -1,0 +1,22 @@
+{
+    "name": "bumpme",
+    "version": "1.0.0",
+    "description": "cli for bumping package.json versions. Useful for build and deploy scripts. Also includes module for other implementations.",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "charm": "^1.0.2",
+        "colors": "^1.1.2"
+    },
+    "bin": {
+        "bumpme": "./cli.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:hasmats/bumpme.git"
+    }
+}
