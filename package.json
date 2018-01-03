@@ -4,7 +4,7 @@
     "description": "cli for bumping package.json versions. Useful for build and deploy scripts. Also includes module for other implementations.",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "nyc mocha test/"
     },
     "author": "",
     "license": "ISC",
@@ -18,5 +18,9 @@
     "repository": {
         "type": "git",
         "url": "git@github.com:hasmats/bumpme.git"
+    },
+    "devDependencies": {
+        "mocha": "^4.1.0",
+        "nyc": "^11.4.1"
     }
 }

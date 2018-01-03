@@ -76,13 +76,13 @@ process.stdin.on('keypress', (s, key) => {
 	} else {
 		if(key.name === 'y') {
 			console.log('\n');
-			bump({}, e => {
+			helper.bump(availableOptions[selected], e => {
 				if(e) {
 					throw new Error(e);
 				}
 				console.log('package.json saved!'.green);
 				process.exit(0);
-			});
+			}, options.path);
 		} else if(key.name === 'n') {
 			console.log('\nAborted!');
 			process.exit(0);
