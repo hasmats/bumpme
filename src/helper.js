@@ -13,7 +13,7 @@ exports.errors = {
 };
 
 const runCallback = (cb, e) => {
-	if(!cb || typeof cb !== 'function') {
+	if(!cb || typeof cb !== 'function') {
 		return;
 	}
 	cb(e);
@@ -45,12 +45,12 @@ exports.getCurrentVersion = packagePath => {
 	}
 
 	try {
-		const package = fs.readFileSync(packagePath).toString();
-		return JSON.parse(package).version;
+		const packageJson = fs.readFileSync(packagePath).toString();
+		return JSON.parse(packageJson).version;
 	} catch(e) {
 		throw new Error(exports.errors.INVALID_PACKAGE.name);
 	}
-}
+};
 
 // TODO: 1.0 => 1.0.0 - add 0 until 3 happy numbers
 exports.fixVersion = v => {
@@ -64,17 +64,17 @@ exports.bump = (type, callback, packagePath) => {
 		path: packagePath ? packagePath : path.resolve(process.cwd(),'package.json')
 	};
 
-	let package;
+	let packageJson;
 	try {
-		package = require(options.path);
+		packageJson = require(options.path);
 	} catch(e) {
 		return runCallback(callback, exports.errors.MISSING_PACKAGE.name);
 	}
 
 	const version = exports.getCurrentVersion(options.path);
-	package.version = exports.getBumpedVersion(version, options.type);
+	packageJson.version = exports.getBumpedVersion(version, options.type);
 
-	fs.writeFile(options.path, JSON.stringify(package, null, 4), e => {
+	fs.writeFile(options.path, JSON.stringify(packageJson, null, 4), e => {
 		runCallback(callback, e);
 	});
 };
