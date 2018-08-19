@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const bump = require('./index');
 const helper = require('./src/helper');
 const readline = require('readline');
+// eslint-disable-next-line no-unused-vars
 const colors = require('colors');
 const path = require('path');
 const charm = require('charm')(process.stdout);
@@ -21,7 +21,8 @@ const options = {
 };
 
 if(process.argv.length > 2) {
-	process.argv.slice(2).forEach(parseOption)
+	const argsArr = process.argv.slice(2);
+	argsArr.forEach((op, i) => parseOption(op, argsArr[i+1]));
 }
 
 let selected = 0;
@@ -29,15 +30,17 @@ let stage = 0;
 
 const version = helper.fixVersion(helper.getCurrentVersion(options.path));
 
-function parseOption(o) {
-	if(o === '--force' || o === '-f') {
-		force = true;
-	} else if(forces.indexOf(o) !== -1) {
+function print(m) {
+	// eslint-disable-next-line no-console
+	console.log(m);
+}
+
+function parseOption(o, nextO) {
+	if(forces.indexOf(o) !== -1) {
 		const splt = o.split('-');
 		options.force = splt[splt.length-1];
-		// TODO: get it!
-	// } else if(o === '--package' || o === '-p') {
-		// options.path = 
+	} else if(o === '--package' || o === '-p') {
+		options.path = path.resolve(process.cwd(), nextO);
 	}
 }
 
@@ -61,6 +64,16 @@ function renderOptions() {
 	});
 }
 
+function bumpVersion(version) {
+	helper.bump(version, e => {
+		if(e) {
+			throw new Error(e);
+		}
+		print('package.json saved!'.green);
+		process.exit(0);
+	}, options.path);
+}
+
 process.stdin.on('keypress', (s, key) => {
 	if(stage === 0) {
 		if(key.name === 'up' && selected !== 0) {
@@ -75,22 +88,16 @@ process.stdin.on('keypress', (s, key) => {
 		renderOptions();
 	} else {
 		if(key.name === 'y') {
-			console.log('\n');
-			helper.bump(availableOptions[selected], e => {
-				if(e) {
-					throw new Error(e);
-				}
-				console.log('package.json saved!'.green);
-				process.exit(0);
-			}, options.path);
+			print('\n');
+			bumpVersion(availableOptions[selected]);
 		} else if(key.name === 'n') {
-			console.log('\nAborted!');
+			print('\nAborted!');
 			process.exit(0);
 		}
 	}
 });
 
-rl.on('line', (cmd) => {
+rl.on('line', () => {
 	// Only listen in first stage
 	if(stage === 0) {
 		charm.write('Bump version from '.grey+version.white+' to '.grey+ helper.getBumpedVersion(version, availableOptions[selected]).green + '\n');
@@ -100,15 +107,15 @@ rl.on('line', (cmd) => {
 }).on('close', () => {
 	// only gets triggered by ^C or ^D
 	rl.close();
-	console.log('exiting'.red);
+	print('exiting'.red);
 	process.exit(0);
 });
 
 process.on('uncaughtException', function(e) {
 	if(typeof e === 'object' && e.message === 'MISSING_PACKAGE') {
-		console.log('package.json was not found! Aborting'.red);
+		print('package.json was not found! Aborting'.red);
 	} else {
-		console.log(e);
+		print(e);
 	}
 	process.exit(1);
 });
@@ -116,6 +123,12 @@ process.on('uncaughtException', function(e) {
 charm.cursor(true);
 
 // Render options
-console.log('Bump version'.grey);
-console.log('Current version is: '.grey + version.white);
-renderOptions();
+print('Bump version'.grey);
+print('Current version is: '.grey + version.white);
+
+if(options.force) {
+	print('Forcing '.grey + options.force.white);
+	bumpVersion(options.force);
+} else {
+	renderOptions();
+}

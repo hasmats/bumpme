@@ -1,30 +1,10 @@
-const fs = require('fs');
-const { promisify } = require('util');
-const exec = promisify(require('child_process').exec);
-const path = require('path');
-const bumpme = require('../index');
-const jsonPath = path.resolve(__dirname,'../.tmp/fakePackage-helper.json');
-
-const resetJson = version => {
-	const packageJson = {
-		version: version || '1.0.0'
-	};
-
-	fs.writeFileSync(jsonPath, JSON.stringify(packageJson));
-};
-
-const resetInvalidJson = () => {
-	fs.writeFileSync(jsonPath, '{version:"1.2.3}');
-};
+const jsonName = 'fakePackage-helper';
+const { resetJson, resetInvalidJson, removeJson, getPathFromName } = require('./helpers/packageHelper');
 
 describe('src/helper.js', () => {
-	beforeEach(() => resetJson());
+	beforeEach(() => resetJson(jsonName));
 
-	afterEach(async () => {
-		if(fs.existsSync(jsonPath)) {
-			await exec(`rm -rf ${jsonPath}`);
-		}
-	});
+	afterEach(async () => await removeJson(jsonName));
 
 	describe('.getCurrentVersion()', () => {
 		it('should return 1.0.0', () => {
@@ -35,17 +15,17 @@ describe('src/helper.js', () => {
 	describe('.getCurrentVersion()', () => {
 		it('should return 1.0.0', () => {
 			const { getCurrentVersion } = require('../src/helper');
-			expect(getCurrentVersion(jsonPath)).toEqual('1.0.0');
+			expect(getCurrentVersion(getPathFromName(jsonName))).toEqual('1.0.0');
 		});
 		it('should throw if missing path', () => {
 			const { getCurrentVersion } = require('../src/helper');
-			expect(() => getCurrentVersion('jsonPath')).toThrow(Error('MISSING_PACKAGE'));
+			expect(() => getCurrentVersion('invalidPath')).toThrow(Error('MISSING_PACKAGE'));
 		});
 
 		it('should throw if invalid json', () => {
-			resetInvalidJson();
+			resetInvalidJson(jsonName);
 			const { getCurrentVersion } = require('../src/helper');
-			expect(() => getCurrentVersion(jsonPath)).toThrow(Error('INVALID_PACKAGE'));
+			expect(() => getCurrentVersion(getPathFromName(jsonName))).toThrow(Error('INVALID_PACKAGE'));
 		});
 	});
 });
